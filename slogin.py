@@ -1,55 +1,54 @@
-import mysql.connector
 import os
-from pydantic import BaseModel
+import mysql.connector
+import jwt
+import datetime
 from fastapi import FastAPI, Depends, HTTPException, status
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from pydantic import BaseModel
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
-# CORS Configuration
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # your React frontend
+    allow_origins=["http://localhost:5173"],  # React dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# MySQL DB Connection
+# DB Connection
 def get_db_connection():
-    connection = mysql.connector.connect(
+    return mysql.connector.connect(
         host="auth-db1834.hstgr.io",
         user="u651328475_fastapi",
         password="U651328475_fastapi",
         database="u651328475_fastapi"
     )
-    return connection
 
-# Root Route
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Student Database API 🎓🚀"}
 
-# Basic Auth Setup
+# Basic Auth
 security = HTTPBasic()
 VALID_USERNAME = "Jannu"
 VALID_PASSWORD = "12345"
 
 def basic_auth(credentials: HTTPBasicCredentials = Depends(security)):
     if credentials.username != VALID_USERNAME or credentials.password != VALID_PASSWORD:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
+        raise HTTPException(status_code=401, detail="Invalid username or password")
     return credentials.username
 
 @app.post("/check")
 def get_secure_data(username: str = Depends(basic_auth)):
     return {"message": "Access granted", "username": username}
 
-# Login Validation
+# Login Check
 class LoginItem(BaseModel):
     username: str
     password: int
@@ -68,7 +67,7 @@ def login_user(obj: LoginItem):
             return {"status": "Success", "message": "Login successful"}
     return {"status": "Failure", "message": "Invalid username or password"}
 
-# Insert Login Credentials
+# Insert Login
 class User(BaseModel):
     username: str
     password: str
@@ -78,8 +77,7 @@ def insert_user(user: User):
     conn = get_db_connection()
     cursor = conn.cursor()
     query = "INSERT INTO login (username, password) VALUES (%s, %s)"
-    values = (user.username, user.password)
-    cursor.execute(query, values)
+    cursor.execute(query, (user.username, user.password))
     conn.commit()
     cursor.close()
     conn.close()
@@ -107,7 +105,7 @@ def forgot_password(request: ForgotPasswordRequest):
     conn.close()
     return {"status": "Success", "message": "Password updated successfully"}
 
-# Get All Users
+# Get Users
 @app.get("/detail")
 def get_users():
     conn = get_db_connection()
@@ -121,7 +119,7 @@ def get_users():
         for user in users
     ]
 
-# Filter by Department
+# Filter: Department
 class DepartmentFilter(BaseModel):
     department: str
 
@@ -129,20 +127,19 @@ class DepartmentFilter(BaseModel):
 def filter_by_department(obj: DepartmentFilter):
     conn = get_db_connection()
     cursor = conn.cursor()
-    query = "SELECT * FROM detail WHERE department = %s"
-    cursor.execute(query, (obj.department,))
+    cursor.execute("SELECT * FROM detail WHERE department = %s", (obj.department,))
     results = cursor.fetchall()
     cursor.close()
     conn.close()
 
     if results:
         return [
-            {"sid": user[0], "name": user[1], "department": user[2], "sem": user[3], "cgpa": user[4]}
-            for user in results
+            {"sid": r[0], "name": r[1], "department": r[2], "sem": r[3], "cgpa": r[4]}
+            for r in results
         ]
-    return {"status": "Failure", "message": "No users found in the specified department"}
+    return {"status": "Failure", "message": "No users found in that department"}
 
-# Filter by Semester
+# Filter: Semester
 class SemesterFilter(BaseModel):
     sem: int
 
@@ -150,20 +147,19 @@ class SemesterFilter(BaseModel):
 def filter_by_sem(obj: SemesterFilter):
     conn = get_db_connection()
     cursor = conn.cursor()
-    query = "SELECT * FROM detail WHERE sem = %s"
-    cursor.execute(query, (obj.sem,))
+    cursor.execute("SELECT * FROM detail WHERE sem = %s", (obj.sem,))
     results = cursor.fetchall()
     cursor.close()
     conn.close()
 
     if results:
         return [
-            {"sid": user[0], "name": user[1], "department": user[2], "sem": user[3], "cgpa": user[4]}
-            for user in results
+            {"sid": r[0], "name": r[1], "department": r[2], "sem": r[3], "cgpa": r[4]}
+            for r in results
         ]
-    return {"status": "Failure", "message": "No users found for the specified semester"}
+    return {"status": "Failure", "message": "No users found in that semester"}
 
-# Filter by CGPA
+# Filter: CGPA
 class CgpaFilter(BaseModel):
     cgpa: int
 
@@ -171,18 +167,17 @@ class CgpaFilter(BaseModel):
 def filter_by_cgpa(obj: CgpaFilter):
     conn = get_db_connection()
     cursor = conn.cursor()
-    query = "SELECT * FROM detail WHERE cgpa = %s"
-    cursor.execute(query, (obj.cgpa,))
+    cursor.execute("SELECT * FROM detail WHERE cgpa = %s", (obj.cgpa,))
     results = cursor.fetchall()
     cursor.close()
     conn.close()
 
     if results:
         return [
-            {"sid": user[0], "name": user[1], "department": user[2], "sem": user[3], "cgpa": user[4]}
-            for user in results
+            {"sid": r[0], "name": r[1], "department": r[2], "sem": r[3], "cgpa": r[4]}
+            for r in results
         ]
-    return {"status": "Failure", "message": "No users found with the specified CGPA"}
+    return {"status": "Failure", "message": "No users found with that CGPA"}
 
 # Search
 class SearchQuery(BaseModel):
@@ -193,28 +188,21 @@ def search_users(query: SearchQuery):
     conn = get_db_connection()
     cursor = conn.cursor()
     search_term = f"%{query.search}%"
-    sql_query = """
+    sql = """
         SELECT * FROM detail
-        WHERE name LIKE %s
-        OR sid LIKE %s
-        OR department LIKE %s
-        OR sem LIKE %s
-        OR cgpa LIKE %s
+        WHERE name LIKE %s OR sid LIKE %s OR department LIKE %s OR sem LIKE %s OR cgpa LIKE %s
     """
-    cursor.execute(sql_query, (search_term, search_term, search_term, search_term, search_term))
+    cursor.execute(sql, (search_term,)*5)
     results = cursor.fetchall()
     cursor.close()
     conn.close()
 
-    if not results:
-        return []
-
     return [
-        {"sid": user[0], "name": user[1], "department": user[2], "sem": user[3], "cgpa": user[4]}
-        for user in results
-    ]
+        {"sid": r[0], "name": r[1], "department": r[2], "sem": r[3], "cgpa": r[4]}
+        for r in results
+    ] if results else []
 
-# Register New Student
+# Register Student
 class UserRegistration(BaseModel):
     sid: int
     name: str
@@ -226,10 +214,34 @@ class UserRegistration(BaseModel):
 def register_user(user: UserRegistration):
     conn = get_db_connection()
     cursor = conn.cursor()
-    query = "INSERT INTO detail (sid, name, department, sem, cgpa) VALUES (%s, %s, %s, %s, %s)"
-    values = (user.sid, user.name, user.department, user.sem, user.cgpa)
-    cursor.execute(query, values)
+    cursor.execute(
+        "INSERT INTO detail (sid, name, department, sem, cgpa) VALUES (%s, %s, %s, %s, %s)",
+        (user.sid, user.name, user.department, user.sem, user.cgpa)
+    )
     conn.commit()
     cursor.close()
     conn.close()
     return {"message": "User registered successfully!"}
+
+# -------------------------------
+# 🔐 Knock Token Generation Route
+# -------------------------------
+
+@app.get("/knock-token")
+def generate_knock_token():
+    private_key = os.getenv("KNOCK_SIGNING_PRIVATE_KEY")
+    if not private_key:
+        raise HTTPException(status_code=500, detail="Knock private key not found")
+
+    payload = {
+        "sub": "Jannu",  # or use user ID from session
+        "iat": int(datetime.datetime.utcnow().timestamp()),
+        "exp": int((datetime.datetime.utcnow() + datetime.timedelta(days=1)).timestamp()),
+    }
+
+    try:
+        token = jwt.encode(payload, private_key, algorithm="RS256")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Token signing failed: {str(e)}")
+
+    return {"user_token": token}
