@@ -41,6 +41,10 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("slogin:app", host="0.0.0.0", port=port, reload=True)
 
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Student Database API 🎓🚀"}
+
 # Basic Auth
 security = HTTPBasic()
 VALID_USERNAME = "Jannu"
