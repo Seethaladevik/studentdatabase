@@ -132,7 +132,7 @@ def get_users():
     cursor.close()
     connection.close()
     return [
-        {"sid": user[0], "sname": user[1], "department": user[2], "sem": user[3], "cgpa": user[4]}
+        {"sid": user[0], "name": user[1], "department": user[2], "sem": user[3], "cgpa": user[4]}
         for user in users
     ]
 
@@ -152,7 +152,7 @@ def filter_by_department(obj: DepartmentFilter):
 
     if results:
         return [
-            {"sid": user[0], "sname": user[1], "department": user[2], "sem": user[3], "cgpa": user[4]}
+            {"sid": user[0], "name": user[1], "department": user[2], "sem": user[3], "cgpa": user[4]}
             for user in results
         ]
     return {"status": "Failure", "message": "No users found in the specified department"}
@@ -173,7 +173,7 @@ def filter_by_sem(obj: SemesterFilter):
 
     if results:
         return [
-            {"sid": user[0], "sname": user[1], "department": user[2], "sem": user[3], "cgpa": user[4]}
+            {"sid": user[0], "name": user[1], "department": user[2], "sem": user[3], "cgpa": user[4]}
             for user in results
         ]
     return {"status": "Failure", "message": "No users found for the specified semester"}
@@ -194,7 +194,7 @@ def filter_by_cgpa(obj: CgpaFilter):
 
     if results:
         return [
-            {"sid": user[0], "sname": user[1], "department": user[2], "sem": user[3], "cgpa": user[4]}
+            {"sid": user[0], "name": user[1], "department": user[2], "sem": user[3], "cgpa": user[4]}
             for user in results
         ]
     return {"status": "Failure", "message": "No users found with the specified CGPA"}
@@ -225,7 +225,7 @@ def search_users(query: SearchQuery):
         return []
 
     return [
-        {"sid": user[0], "sname": user[1], "department": user[2], "sem": user[3], "cgpa": user[4]}
+        {"sid": user[0], "name": user[1], "department": user[2], "sem": user[3], "cgpa": user[4]}
         for user in results
     ]
 
