@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pymysql
+python-multipart
+pillow
+mysql-connector
+fastapi[standard]
+email-validator
+jinja2
+httpx
