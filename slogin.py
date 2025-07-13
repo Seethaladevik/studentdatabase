@@ -2,7 +2,7 @@ import os
 import mysql.connector
 import jwt
 import datetime
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
@@ -24,10 +24,10 @@ app.add_middleware(
 # DB Connection
 def get_db_connection():
     return mysql.connector.connect(
-        host="auth-db1834.hstgr.io",
-        user="u651328475_fastapi",
-        password="U651328475_fastapi",
-        database="u651328475_fastapi"
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME")
     )
 
 @app.get("/")
@@ -223,10 +223,7 @@ def register_user(user: UserRegistration):
     conn.close()
     return {"message": "User registered successfully!"}
 
-# -------------------------------
-# 🔐 Knock Token Generation Route
-# -------------------------------
-
+# Knock Token
 @app.get("/knock-token")
 def generate_knock_token():
     private_key = os.getenv("KNOCK_SIGNING_PRIVATE_KEY")
@@ -234,7 +231,7 @@ def generate_knock_token():
         raise HTTPException(status_code=500, detail="Knock private key not found")
 
     payload = {
-        "sub": "Jannu",  # or use user ID from session
+        "sub": "Jannu",
         "iat": int(datetime.datetime.utcnow().timestamp()),
         "exp": int((datetime.datetime.utcnow() + datetime.timedelta(days=1)).timestamp()),
     }
