@@ -1,5 +1,4 @@
 import mysql.connector
-import uvicorn
 import os
 from pydantic import BaseModel
 from fastapi import FastAPI, Depends, HTTPException, status
@@ -8,44 +7,31 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# CORS Middleware
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # React app origin
+    allow_origins=["http://localhost:5173"],  # your React frontend
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# DB Connection
-# def get_db_connection():
-#     connection = mysql.connector.connect(
-#         host="localhost",
-#         user="root",
-#         password="",
-#         database="register",
-#         port="3306"
-#     )
-#     return connection
+# MySQL DB Connection
 def get_db_connection():
     connection = mysql.connector.connect(
         host="auth-db1834.hstgr.io",
         user="u651328475_fastapi",
         password="U651328475_fastapi",
         database="u651328475_fastapi"
-
-
     )
     return connection
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("slogin:app", host="0.0.0.0", port=port, reload=True)
 
+# Root Route
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Student Database API 🎓🚀"}
 
-# Basic Auth
+# Basic Auth Setup
 security = HTTPBasic()
 VALID_USERNAME = "Jannu"
 VALID_PASSWORD = "12345"
@@ -59,7 +45,6 @@ def basic_auth(credentials: HTTPBasicCredentials = Depends(security)):
         )
     return credentials.username
 
-# Secure Route
 @app.post("/check")
 def get_secure_data(username: str = Depends(basic_auth)):
     return {"message": "Access granted", "username": username}
@@ -70,7 +55,7 @@ class LoginItem(BaseModel):
     password: int
 
 @app.post("/data")
-def read_root2(obj: LoginItem):
+def login_user(obj: LoginItem):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT username, password FROM login")
@@ -89,7 +74,7 @@ class User(BaseModel):
     password: str
 
 @app.post("/insert")
-def insert_data(user: User):
+def insert_user(user: User):
     conn = get_db_connection()
     cursor = conn.cursor()
     query = "INSERT INTO login (username, password) VALUES (%s, %s)"
@@ -122,15 +107,15 @@ def forgot_password(request: ForgotPasswordRequest):
     conn.close()
     return {"status": "Success", "message": "Password updated successfully"}
 
-# Get All Users from Detail Table
+# Get All Users
 @app.get("/detail")
 def get_users():
-    connection = get_db_connection()
-    cursor = connection.cursor()
+    conn = get_db_connection()
+    cursor = conn.cursor()
     cursor.execute("SELECT * FROM detail")
     users = cursor.fetchall()
     cursor.close()
-    connection.close()
+    conn.close()
     return [
         {"sid": user[0], "name": user[1], "department": user[2], "sem": user[3], "cgpa": user[4]}
         for user in users
@@ -199,7 +184,7 @@ def filter_by_cgpa(obj: CgpaFilter):
         ]
     return {"status": "Failure", "message": "No users found with the specified CGPA"}
 
-# Search API
+# Search
 class SearchQuery(BaseModel):
     search: str
 
@@ -210,7 +195,7 @@ def search_users(query: SearchQuery):
     search_term = f"%{query.search}%"
     sql_query = """
         SELECT * FROM detail
-        WHERE sname LIKE %s
+        WHERE name LIKE %s
         OR sid LIKE %s
         OR department LIKE %s
         OR sem LIKE %s
@@ -229,7 +214,7 @@ def search_users(query: SearchQuery):
         for user in results
     ]
 
-# Register new user to 'detail' table
+# Register New Student
 class UserRegistration(BaseModel):
     sid: int
     name: str
