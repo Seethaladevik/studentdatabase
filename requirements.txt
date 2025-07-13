@@ -1,10 +1,11 @@
 fastapi
+fastapi[standard]
 uvicorn
 pymysql
 python-multipart
 pillow
-mysql-connector
-fastapi[standard]
+mysql-connector-python
 email-validator
 jinja2
-httpx
+python-dotenv
+PyJWT
