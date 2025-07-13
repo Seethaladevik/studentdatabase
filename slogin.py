@@ -227,7 +227,6 @@ def register_user(user: UserRegistration):
 @app.get("/knock-token")
 def generate_knock_token():
     private_key = os.getenv("KNOCK_SIGNING_PRIVATE_KEY").replace('\\n', '\n')
-
     if not private_key:
         raise HTTPException(status_code=500, detail="Knock private key not found")
 
