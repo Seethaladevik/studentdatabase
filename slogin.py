@@ -1,4 +1,6 @@
 import mysql.connector
+import uvicorn
+import os
 from pydantic import BaseModel
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -35,6 +37,9 @@ def get_db_connection():
 
     )
     return connection
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("slogin:app", host="0.0.0.0", port=port, reload=True)
 
 # Basic Auth
 security = HTTPBasic()
