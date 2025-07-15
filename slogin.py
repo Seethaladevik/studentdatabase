@@ -72,7 +72,7 @@ def login_user(obj: LoginItem):
 # Insert Login
 class User(BaseModel):
     username: str
-    password: int
+    password: str
 
 @app.post("/insert")
 def insert_user(user: User):
