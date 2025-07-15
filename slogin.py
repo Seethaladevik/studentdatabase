@@ -79,7 +79,7 @@ def insert_user(user: User):
     conn = get_db_connection()
     cursor = conn.cursor()
     query = "INSERT INTO login (username, password) VALUES (%s, %s)"
-    cursor.execute(query, (user.username, user.password))
+    cursor.execute(query, (user.username, str(user.password)))
     conn.commit()
     cursor.close()
     conn.close()
