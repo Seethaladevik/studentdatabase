@@ -6,16 +6,18 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 
-# load_dotenv()
+load_dotenv()
 
 app = FastAPI()
 
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # React dev server
+    allow_origins=["http://localhost:5173",
+                   "http://localhost:3000",          # CRA (if used)
+                   "https://student-lac-six.vercel.app" ],  # React dev server
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -224,17 +226,17 @@ def register_user(user: UserRegistration):
     return {"message": "User registered successfully!"}
 
 # Knock Token
-# @app.get("/knock-token")
-# def generate_knock_token():
-#     private_key = os.getenv("KNOCK_SIGNING_PRIVATE_KEY").replace('\\n', '\n')
-#     payload = {
-#         "sub": "Jannu",
-#         "iat": int(datetime.datetime.utcnow().timestamp()),
-#         "exp": int((datetime.datetime.utcnow() + datetime.timedelta(days=1)).timestamp()),
-#     }
-#
-#     try:
-#         token = jwt.encode(payload, private_key, algorithm="RS256")
-#         print("✅ Token generated:\n", token)
-#     except Exception as e:
-#         print("❌ Error:", e)
+@app.get("/knock-token")
+def generate_knock_token():
+    private_key = os.getenv("KNOCK_SIGNING_PRIVATE_KEY").replace('\\n', '\n')
+    payload = {
+        "sub": "Jannu",
+        "iat": int(datetime.datetime.utcnow().timestamp()),
+        "exp": int((datetime.datetime.utcnow() + datetime.timedelta(days=1)).timestamp()),
+    }
+
+    try:
+        token = jwt.encode(payload, private_key, algorithm="RS256")
+        print("✅ Token generated:\n", token)
+    except Exception as e:
+        print("❌ Error:", e)
