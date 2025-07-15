@@ -26,10 +26,10 @@ app.add_middleware(
 # DB Connection
 def get_db_connection():
     return mysql.connector.connect(
-        host=os.getenv("DB_HOST"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        database=os.getenv("DB_NAME")
+        host=os.getenv("auth-db1834.hstgr.io"),
+        user=os.getenv("u651328475_fastapi"),
+        password=os.getenv("U651328475_fastapi"),
+        database=os.getenv("u651328475_fastapi")
     )
 
 @app.get("/")
