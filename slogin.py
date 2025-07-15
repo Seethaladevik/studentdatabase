@@ -53,7 +53,7 @@ def get_secure_data(username: str = Depends(basic_auth)):
 # Login Check
 class LoginItem(BaseModel):
     username: str
-    password: int
+    password: str
 
 @app.post("/data")
 def login_user(obj: LoginItem):
