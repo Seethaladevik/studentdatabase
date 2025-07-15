@@ -232,7 +232,8 @@ def generate_knock_token():
     if not private_key:
         return {"error": "Missing KNOCK_SIGNING_PRIVATE_KEY"}
 
-    private_key = private_key.replace("\\n", "\n")
+    private_key = os.getenv("KNOCK_SIGNING_PRIVATE_KEY").replace('\\n', '\n')
+
 
     payload = {
         "sub": "Jannu",
