@@ -228,7 +228,12 @@ def register_user(user: UserRegistration):
 # Knock Token
 @app.get("/knock-token")
 def generate_knock_token():
-    private_key = os.getenv("KNOCK_SIGNING_PRIVATE_KEY").replace('\\n', '\n')
+    private_key = os.getenv("KNOCK_SIGNING_PRIVATE_KEY")
+    if not private_key:
+        return {"error": "Missing KNOCK_SIGNING_PRIVATE_KEY"}
+
+    private_key = private_key.replace("\\n", "\n")
+
     payload = {
         "sub": "Jannu",
         "iat": int(datetime.datetime.utcnow().timestamp()),
@@ -237,6 +242,6 @@ def generate_knock_token():
 
     try:
         token = jwt.encode(payload, private_key, algorithm="RS256")
-        print("✅ Token generated:\n", token)
+        return {"token": token}
     except Exception as e:
-        print("❌ Error:", e)
+        return {"error": f"Token generation failed: {str(e)}"}
